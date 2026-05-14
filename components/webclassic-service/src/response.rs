@@ -2,7 +2,7 @@ use std::io::{Error as IoError, Write};
 
 use snafu::{ResultExt, Snafu};
 
-use crate::Interrupt;
+use crate::interrupt::Interrupt;
 
 pub trait Response {
     fn serialize(&self) -> Vec<u8>;
@@ -54,7 +54,7 @@ pub enum WriteResponseError {
 mod tests {
     use std::io::Cursor;
 
-    use crate::InterruptSource;
+    use crate::interrupt::InterruptSource;
 
     use super::*;
 
