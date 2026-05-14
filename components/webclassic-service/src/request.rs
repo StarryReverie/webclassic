@@ -3,7 +3,7 @@ use std::io::{Error as IoError, ErrorKind as IoErrorKind, Read};
 
 use snafu::{ResultExt, Snafu};
 
-use crate::Interrupt;
+use crate::interrupt::Interrupt;
 
 pub trait Request: Sized {
     type Error: Error + 'static;
@@ -95,7 +95,7 @@ where
 mod tests {
     use std::io::{Cursor, Read, Result as IoResult};
 
-    use crate::InterruptSource;
+    use crate::interrupt::InterruptSource;
 
     use super::*;
 
