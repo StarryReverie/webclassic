@@ -69,6 +69,13 @@ name = "webclassic"
 version = "0.1.0"
 
 [[package]]
+name = "webclassic-http"
+version = "0.0.0"
+dependencies = [
+ "webclassic-service",
+]
+
+[[package]]
 name = "webclassic-service"
 version = "0.0.0"
 dependencies = [
