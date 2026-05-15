@@ -79,6 +79,18 @@ impl PathPattern {
             }
         }
     }
+
+    pub fn tail_for(&self, path: &str) -> String {
+        match &self {
+            PathPattern::Prefix(pattern) => {
+                let prefix_str = pattern.to_string_lossy();
+                path.strip_prefix(prefix_str.as_ref())
+                    .unwrap_or("")
+                    .to_string()
+            }
+            PathPattern::Equal(_) => String::new(),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

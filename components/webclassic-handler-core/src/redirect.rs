@@ -1,8 +1,7 @@
-use webclassic_http::request::HttpRequest;
 use webclassic_http::response::HttpResponse;
 use webclassic_http::util::StatusCode;
 use webclassic_service::interrupt::Interrupt;
-use webclassic_web::controller::Controller;
+use webclassic_web::controller::{Context, Controller};
 
 #[derive(Debug, Clone)]
 pub struct RedirectHandler {
@@ -27,7 +26,7 @@ impl RedirectHandler {
 }
 
 impl Controller for RedirectHandler {
-    fn process(&self, _request: HttpRequest, _interrupt: &Interrupt) -> Option<HttpResponse> {
+    fn process(&self, _context: Context, _interrupt: &Interrupt) -> Option<HttpResponse> {
         Some(
             HttpResponse::new(self.status)
                 .with_header("location", self.location.clone())

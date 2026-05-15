@@ -1,8 +1,7 @@
-use webclassic_http::request::HttpRequest;
 use webclassic_http::response::HttpResponse;
 use webclassic_http::util::StatusCode;
 use webclassic_service::interrupt::Interrupt;
-use webclassic_web::controller::Controller;
+use webclassic_web::controller::{Context, Controller};
 
 #[derive(Debug, Clone)]
 pub struct ConstantHandler {
@@ -32,7 +31,7 @@ impl ConstantHandler {
 }
 
 impl Controller for ConstantHandler {
-    fn process(&self, _request: HttpRequest, _interrupt: &Interrupt) -> Option<HttpResponse> {
+    fn process(&self, _context: Context, _interrupt: &Interrupt) -> Option<HttpResponse> {
         let mut response = HttpResponse::new(self.status).with_body(self.body.clone().into_bytes());
         for (name, value) in &self.headers {
             response = response.with_header(name, value.clone());
