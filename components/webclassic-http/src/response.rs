@@ -47,7 +47,7 @@ impl Response for HttpResponse {
 
         output.extend_from_slice(format!("HTTP/1.0 {}\r\n", self.status).as_bytes());
 
-        if self.headers.get("content-length").is_none() && !self.body.is_empty() {
+        if self.headers.get("content-length").is_none() {
             output.extend_from_slice(format!("content-length: {}\r\n", self.body.len()).as_bytes());
         }
 
@@ -72,7 +72,7 @@ mod tests {
     fn serialize_200_empty() {
         let resp = HttpResponse::new(StatusCode::OK);
         let raw = String::from_utf8(resp.serialize()).unwrap();
-        assert_eq!(raw, "HTTP/1.0 200 OK\r\n\r\n");
+        assert_eq!(raw, "HTTP/1.0 200 OK\r\ncontent-length: 0\r\n\r\n");
     }
 
     #[test]
