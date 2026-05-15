@@ -6,6 +6,7 @@ default-members = ["."]
 getset = "0.1.6"
 serde = { version = "1.0.228", features = ["derive"] }
 snafu = "0.9.0"
+tempfile = "3"
 toml = "1.1.2"
 
 
@@ -17,6 +18,7 @@ edition = "2024"
 [dependencies]
 
 webclassic-handler-core = { path = "components/webclassic-handler-core" }
+webclassic-handler-static = { path = "components/webclassic-handler-static" }
 webclassic-http = { path = "components/webclassic-http" }
 webclassic-runtime = { path = "components/webclassic-runtime" }
 webclassic-service = { path = "components/webclassic-service" }
