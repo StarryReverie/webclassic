@@ -1,14 +1,13 @@
-use webclassic_http::request::HttpRequest;
 use webclassic_http::response::HttpResponse;
 use webclassic_service::interrupt::Interrupt;
 
-use crate::controller::Controller;
+use crate::controller::{Context, Controller};
 
-pub trait Filter {
+pub trait Filter: Send + Sync {
     fn filter<C>(
         &self,
         controller: &C,
-        request: HttpRequest,
+        context: Context,
         interrupt: &Interrupt,
     ) -> Option<HttpResponse>
     where
@@ -31,8 +30,8 @@ where
     F: Filter,
     C: Controller,
 {
-    fn process(&self, request: HttpRequest, interrupt: &Interrupt) -> Option<HttpResponse> {
-        self.filter.filter(&self.controller, request, interrupt)
+    fn process(&self, context: Context, interrupt: &Interrupt) -> Option<HttpResponse> {
+        self.filter.filter(&self.controller, context, interrupt)
     }
 }
 

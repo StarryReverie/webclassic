@@ -15,3 +15,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+
+webclassic-handler-core = { path = "components/webclassic-handler-core" }
+webclassic-http = { path = "components/webclassic-http" }
+webclassic-runtime = { path = "components/webclassic-runtime" }
+webclassic-service = { path = "components/webclassic-service" }
+webclassic-web = { path = "components/webclassic-web" }

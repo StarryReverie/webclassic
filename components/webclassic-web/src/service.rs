@@ -5,21 +5,21 @@ use webclassic_http::response::HttpResponse;
 use webclassic_service::interrupt::Interrupt;
 use webclassic_service::service::Service;
 
-use crate::controller::Controller;
+use crate::controller::{Context, Controller};
 
 pub struct WebService {
-    controller: Box<dyn Controller + Send + Sync>,
+    controller: Box<dyn Controller>,
 }
 
 impl WebService {
     pub fn new<C>(controller: C) -> Self
     where
-        C: Controller + Send + Sync + 'static,
+        C: Controller + 'static,
     {
         Self::boxed(Box::new(controller))
     }
 
-    pub fn boxed(controller: Box<dyn Controller + Send + Sync>) -> Self {
+    pub fn boxed(controller: Box<dyn Controller>) -> Self {
         Self { controller }
     }
 }
@@ -34,6 +34,7 @@ impl Service for WebService {
         request: Self::Request,
         interrupt: &Interrupt,
     ) -> Result<Option<Self::Response>, Self::Error> {
-        Ok(self.controller.process(request, interrupt))
+        let context = Context::new(request);
+        Ok(self.controller.process(context, interrupt))
     }
 }

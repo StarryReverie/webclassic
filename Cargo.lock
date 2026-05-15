@@ -67,6 +67,22 @@ checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
 [[package]]
 name = "webclassic"
 version = "0.1.0"
+dependencies = [
+ "webclassic-handler-core",
+ "webclassic-http",
+ "webclassic-runtime",
+ "webclassic-service",
+ "webclassic-web",
+]
+
+[[package]]
+name = "webclassic-handler-core"
+version = "0.0.0"
+dependencies = [
+ "webclassic-http",
+ "webclassic-service",
+ "webclassic-web",
+]
 
 [[package]]
 name = "webclassic-http"
