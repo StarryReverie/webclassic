@@ -85,6 +85,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "webclassic-handler-static"
+version = "0.0.0"
+dependencies = [
+ "webclassic-http",
+ "webclassic-service",
+ "webclassic-web",
+]
+
+[[package]]
 name = "webclassic-http"
 version = "0.0.0"
 dependencies = [
