@@ -77,6 +77,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "webclassic-runtime"
+version = "0.0.0"
+dependencies = [
+ "webclassic-service",
+]
+
+[[package]]
 name = "webclassic-service"
 version = "0.0.0"
 dependencies = [
