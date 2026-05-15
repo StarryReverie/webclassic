@@ -359,6 +359,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "webclassic-handler-cgi"
+version = "0.0.0"
+
+[[package]]
 name = "webclassic-handler-core"
 version = "0.0.0"
 dependencies = [
