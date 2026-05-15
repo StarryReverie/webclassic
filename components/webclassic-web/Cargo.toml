@@ -1,0 +1,8 @@
+[package]
+name = "webclassic-web"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+webclassic-http = { path = "../webclassic-http" }
+webclassic-service = { path = "../webclassic-service" }
