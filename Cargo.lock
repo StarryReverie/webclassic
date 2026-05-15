@@ -82,3 +82,11 @@ version = "0.0.0"
 dependencies = [
  "snafu",
 ]
+
+[[package]]
+name = "webclassic-web"
+version = "0.0.0"
+dependencies = [
+ "webclassic-http",
+ "webclassic-service",
+]
