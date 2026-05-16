@@ -1,6 +1,7 @@
 [workspace]
-members = [".", "components/*"]
-default-members = ["."]
+resolver = "3"
+members = ["components/*", "apps/*"]
+default-members = ["apps/webclassic-embedded-links"]
 
 [workspace.dependencies]
 getset = "0.1.6"

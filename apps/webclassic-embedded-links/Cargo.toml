@@ -1,0 +1,7 @@
+[package]
+name = "webclassic-embedded-links"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+webclassic = { path = "../../components/webclassic" }
