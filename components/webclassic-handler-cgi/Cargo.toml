@@ -7,3 +7,6 @@ edition = "2024"
 webclassic-http = { path = "../webclassic-http" }
 webclassic-service = { path = "../webclassic-service" }
 webclassic-web = { path = "../webclassic-web" }
+
+[dev-dependencies]
+tempfile = { workspace = true }

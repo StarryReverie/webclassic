@@ -363,6 +363,7 @@ dependencies = [
 name = "webclassic-handler-cgi"
 version = "0.0.0"
 dependencies = [
+ "tempfile",
  "webclassic-http",
  "webclassic-service",
  "webclassic-web",
