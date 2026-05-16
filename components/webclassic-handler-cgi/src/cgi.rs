@@ -1,7 +1,9 @@
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
+use std::time::Duration;
 
+use wait_timeout::ChildExt;
 use webclassic_http::request::HttpRequest;
 use webclassic_http::response::HttpResponse;
 use webclassic_http::util::StatusCode;
@@ -10,6 +12,8 @@ use webclassic_web::controller::{Context, Controller};
 
 use crate::env::build_cgi_env;
 use crate::parse::parse_cgi_output;
+
+const POLL_INTERVAL: Duration = Duration::from_millis(50);
 
 pub struct CgiHandler {
     script: PathBuf,
@@ -74,30 +78,30 @@ impl Controller for CgiHandler {
         }
 
         loop {
-            if interrupt.is_interrupted() {
-                let _ = child.kill();
-                let _ = child.wait();
-                return Some(HttpResponse::new(StatusCode::SERVICE_UNAVAILABLE));
-            }
-
-            match child.try_wait() {
+            match child.wait_timeout(POLL_INTERVAL) {
                 Ok(Some(status)) => {
                     if !status.success() {
                         return Some(HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR));
                     }
                     break;
                 }
-                Ok(None) => std::thread::yield_now(),
+                Ok(None) => {
+                    if interrupt.is_interrupted() {
+                        let _ = child.kill();
+                        let _ = child.wait();
+                        return Some(HttpResponse::new(StatusCode::SERVICE_UNAVAILABLE));
+                    }
+                }
                 Err(_) => return Some(HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)),
             }
         }
 
-        let output = match child.wait_with_output() {
-            Ok(output) => output,
-            Err(_) => return Some(HttpResponse::new(StatusCode::INTERNAL_SERVER_ERROR)),
-        };
+        let mut output = Vec::new();
+        if let Some(mut out) = child.stdout.take() {
+            let _ = out.read_to_end(&mut output);
+        }
 
-        Some(parse_cgi_output(&output.stdout))
+        Some(parse_cgi_output(&output))
     }
 }
 
