@@ -76,7 +76,7 @@ mod tests {
 
         let response = filter.filter(&controller, context, &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         assert!(response.body().is_empty());
         assert_eq!(
             response.headers().get("content-length"),

@@ -138,7 +138,7 @@ mod tests {
         let ctx = make_context("/static/css/style.css", &["css", "style.css"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         let body = String::from_utf8(response.body().to_vec()).unwrap();
         assert_eq!(body, "body { color: red; }");
     }
@@ -153,7 +153,7 @@ mod tests {
         let ctx = make_context("/static/css", &["css"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::FOUND);
+        assert_eq!(response.status(), StatusCode::FOUND);
         assert_eq!(
             response.headers().get("location").unwrap()[0],
             "/static/css/"
@@ -170,7 +170,7 @@ mod tests {
         let ctx = make_context("/static/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         let body = String::from_utf8(response.body().to_vec()).unwrap();
         assert_eq!(body, "<h1>Hello</h1>");
     }
@@ -185,7 +185,7 @@ mod tests {
         let ctx = make_context("/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         let body = String::from_utf8(response.body().to_vec()).unwrap();
         assert_eq!(body, "<h1>Hello</h1>");
     }
@@ -199,7 +199,7 @@ mod tests {
         let ctx = make_context("/static/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 
     #[test]
@@ -214,7 +214,7 @@ mod tests {
         );
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::FORBIDDEN);
+        assert_eq!(response.status(), StatusCode::FORBIDDEN);
     }
 
     #[test]
@@ -226,6 +226,6 @@ mod tests {
         let ctx = make_context("/static/nope.txt", &["nope.txt"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 }

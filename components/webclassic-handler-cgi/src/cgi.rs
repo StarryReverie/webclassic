@@ -167,7 +167,7 @@ mod tests {
         let ctx = make_context("/hello", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         assert_eq!(response.body(), b"Hello CGI\n");
     }
 
@@ -184,7 +184,7 @@ mod tests {
         let ctx = make_context("/notfound", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 
     #[test]
@@ -193,7 +193,7 @@ mod tests {
         let ctx = make_context("/test", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
-        assert_eq!(*response.status(), StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
     }
 
     #[test]
@@ -211,7 +211,7 @@ mod tests {
         let ctx = Context::with_tail(request, vec![]);
 
         let response = handler.process(ctx, &make_interrupt()).unwrap();
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         let body = String::from_utf8(response.body().to_vec()).unwrap();
         assert!(body.contains("foo=bar"));
     }
@@ -231,7 +231,7 @@ mod tests {
         let ctx = Context::with_tail(request, vec!["2024".to_string(), "hi".to_string()]);
 
         let response = handler.process(ctx, &make_interrupt()).unwrap();
-        assert_eq!(*response.status(), StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         let body = String::from_utf8(response.body().to_vec()).unwrap();
         assert!(body.contains("/2024/hi"));
     }

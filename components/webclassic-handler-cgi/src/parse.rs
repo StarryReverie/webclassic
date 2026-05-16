@@ -73,7 +73,7 @@ mod tests {
     fn standard_output_with_crlf() {
         let output = b"Content-Type: text/html\r\n\r\n<body>hello</body>";
         let resp = parse_cgi_output(output);
-        assert_eq!(*resp.status(), StatusCode::OK);
+        assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.body(), b"<body>hello</body>");
     }
 
@@ -81,7 +81,7 @@ mod tests {
     fn standard_output_with_lf() {
         let output = b"Content-Type: text/html\n\n<body>hello</body>";
         let resp = parse_cgi_output(output);
-        assert_eq!(*resp.status(), StatusCode::OK);
+        assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.body(), b"<body>hello</body>");
     }
 
@@ -89,7 +89,7 @@ mod tests {
     fn status_header() {
         let output = b"Status: 404 Not Found\r\nContent-Type: text/html\r\n\r\nNot found";
         let resp = parse_cgi_output(output);
-        assert_eq!(*resp.status(), StatusCode::NOT_FOUND);
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
         assert_eq!(resp.body(), b"Not found");
     }
 
@@ -97,7 +97,7 @@ mod tests {
     fn multiple_headers() {
         let output = b"Content-Type: text/html\r\nX-Custom: foo\r\n\r\nok";
         let resp = parse_cgi_output(output);
-        assert_eq!(*resp.status(), StatusCode::OK);
+        assert_eq!(resp.status(), StatusCode::OK);
         assert_eq!(resp.headers().get("content-type").unwrap()[0], "text/html");
         assert_eq!(resp.headers().get("x-custom").unwrap()[0], "foo");
     }
@@ -105,25 +105,25 @@ mod tests {
     #[test]
     fn empty_output_returns_500() {
         let resp = parse_cgi_output(b"");
-        assert_eq!(*resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     #[test]
     fn no_header_separator_returns_500() {
         let resp = parse_cgi_output(b"Content-Type: text/html");
-        assert_eq!(*resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
     }
 
     #[test]
     fn empty_body() {
         let resp = parse_cgi_output(b"Content-Type: text/plain\r\n\r\n");
-        assert_eq!(*resp.status(), StatusCode::OK);
+        assert_eq!(resp.status(), StatusCode::OK);
         assert!(resp.body().is_empty());
     }
 
     #[test]
     fn status_without_reason() {
         let resp = parse_cgi_output(b"Status: 201\r\n\r\ncreated");
-        assert_eq!(*resp.status(), StatusCode::CREATED);
+        assert_eq!(resp.status(), StatusCode::CREATED);
     }
 }

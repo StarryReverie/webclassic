@@ -18,8 +18,8 @@ impl HttpResponse {
         }
     }
 
-    pub fn status(&self) -> &StatusCode {
-        &self.status
+    pub fn status(&self) -> StatusCode {
+        self.status
     }
 
     pub fn headers(&self) -> &HeaderMap {

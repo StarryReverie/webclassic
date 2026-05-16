@@ -53,7 +53,7 @@ impl Filter for ErrorPageFilter {
     {
         let response = controller.process(context, interrupt);
         match response {
-            Some(ref r) if r.status().code() >= 400 => match self.pages.get(r.status()) {
+            Some(ref r) if r.status().code() >= 400 => match self.pages.get(&r.status()) {
                 Some(handler) => Some(handler()),
                 None => response,
             },
@@ -102,7 +102,7 @@ mod tests {
         let filter = ErrorPageFilter::new();
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
         assert!(response.body().is_empty());
     }
 
@@ -112,7 +112,7 @@ mod tests {
         let filter = ErrorPageFilter::new();
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::OK);
+        assert_eq!(response.status(), StatusCode::OK);
         assert!(response.body().is_empty());
     }
 
@@ -129,7 +129,7 @@ mod tests {
         let filter = ErrorPageFilter::new();
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::MOVED_PERMANENTLY);
+        assert_eq!(response.status(), StatusCode::MOVED_PERMANENTLY);
         assert!(response.body().is_empty());
     }
 
@@ -142,7 +142,7 @@ mod tests {
         );
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
         assert_eq!(response.body(), b"<html><body>custom 404</body></html>");
     }
 
@@ -153,7 +153,7 @@ mod tests {
             ErrorPageFilter::new().with_page(StatusCode::NOT_FOUND, "custom 404".to_string());
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(response.status(), StatusCode::INTERNAL_SERVER_ERROR);
         assert!(response.body().is_empty());
     }
 
@@ -167,7 +167,7 @@ mod tests {
         let controller = FixedController(StatusCode::NOT_FOUND);
         let response = filter.filter(&controller, context(), &interrupt()).unwrap();
 
-        assert_eq!(response.status(), &StatusCode::NOT_FOUND);
+        assert_eq!(response.status(), StatusCode::NOT_FOUND);
         assert_eq!(response.body(), b"custom error");
         assert_eq!(
             response.headers().get("content-type"),
@@ -206,7 +206,7 @@ mod tests {
                 &interrupt(),
             )
             .unwrap();
-        assert_eq!(resp500.status(), &StatusCode::INTERNAL_SERVER_ERROR);
+        assert_eq!(resp500.status(), StatusCode::INTERNAL_SERVER_ERROR);
         assert!(resp500.body().is_empty());
     }
 }
