@@ -1,6 +1,6 @@
 use std::error::Error;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 use webclassic::web::protocol::util::Method;
@@ -45,10 +45,25 @@ impl CgiEntry {
     }
 }
 
-pub fn load(path: &std::path::Path) -> Result<Config, Box<dyn Error>> {
+pub fn load(path: &Path) -> Result<Config, Box<dyn Error>> {
     let content = fs::read_to_string(path)?;
-    let config = toml::from_str::<Config>(&content)?;
+    let mut config = toml::from_str::<Config>(&content)?;
+
+    let base = path.parent().unwrap_or(Path::new("."));
+    config.content.root = resolve_path(base, &config.content.root);
+    for entry in &mut config.cgi {
+        entry.program = resolve_path(base, &entry.program);
+    }
+
     Ok(config)
+}
+
+fn resolve_path(base: &Path, path: &Path) -> PathBuf {
+    if path.is_relative() {
+        base.join(path)
+    } else {
+        path.to_path_buf()
+    }
 }
 
 #[cfg(test)]
@@ -138,5 +153,52 @@ mod tests {
             args: vec![],
         };
         assert!(entry.parse_methods().is_err());
+    }
+
+    #[test]
+    fn resolve_relative_paths() {
+        let tmp = tempfile::tempdir().unwrap();
+        let config_path = tmp.path().join("server.toml");
+        fs::write(
+            &config_path,
+            r#"
+listen = "127.0.0.1:8080"
+[content]
+root = "./public"
+index = "index.html"
+[[cgi]]
+methods = ["GET"]
+prefix = "/cgi-bin/hello"
+program = "./cgi-bin/hello.sh"
+"#,
+        )
+        .unwrap();
+
+        let config = load(&config_path).unwrap();
+        assert_eq!(config.content.root, tmp.path().join("public"));
+        assert_eq!(config.cgi[0].program, tmp.path().join("cgi-bin/hello.sh"));
+    }
+
+    #[test]
+    fn keep_absolute_paths() {
+        let tmp = tempfile::tempdir().unwrap();
+        let config_path = tmp.path().join("server.toml");
+        fs::write(
+            &config_path,
+            r#"
+listen = "127.0.0.1:8080"
+[content]
+root = "/var/www/html"
+[[cgi]]
+methods = ["GET"]
+prefix = "/cgi-bin/hello"
+program = "/usr/local/bin/hello.sh"
+"#,
+        )
+        .unwrap();
+
+        let config = load(&config_path).unwrap();
+        assert_eq!(config.content.root, PathBuf::from("/var/www/html"));
+        assert_eq!(config.cgi[0].program, PathBuf::from("/usr/local/bin/hello.sh"));
     }
 }

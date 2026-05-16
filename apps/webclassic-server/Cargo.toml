@@ -8,3 +8,6 @@ serde = { workspace = true }
 toml = { workspace = true }
 
 webclassic = { path = "../../components/webclassic", features = ["full"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
