@@ -1,6 +1,11 @@
-use std::path::{Path, PathBuf};
-
 use webclassic_http::util::Method;
+
+fn parse_segments(path: &str) -> Vec<String> {
+    path.split('/')
+        .filter(|s| !s.is_empty())
+        .map(String::from)
+        .collect()
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Route {
@@ -39,40 +44,37 @@ pub struct RouteBuilder {
 }
 
 impl RouteBuilder {
-    pub fn prefix<P>(self, path: P) -> Route
-    where
-        P: Into<PathBuf>,
-    {
-        Route::new(self.method, PathPattern::Prefix(path.into()))
+    pub fn prefix(self, path: &str) -> Route {
+        Route::new(self.method, PathPattern::Prefix(parse_segments(path)))
     }
 
-    pub fn equal<P>(self, path: P) -> Route
-    where
-        P: Into<PathBuf>,
-    {
-        Route::new(self.method, PathPattern::Equal(path.into()))
+    pub fn equal(self, path: &str) -> Route {
+        Route::new(self.method, PathPattern::Equal(parse_segments(path)))
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum PathPattern {
-    Prefix(PathBuf),
-    Equal(PathBuf),
+    Prefix(Vec<String>),
+    Equal(Vec<String>),
 }
 
 impl PathPattern {
     pub fn test(&self, path: &str) -> Option<MatchMetric> {
+        let segments = parse_segments(path);
         match &self {
             PathPattern::Prefix(pattern) => {
-                if Path::new(path).starts_with(pattern) {
-                    Some(MatchMetric(pattern.iter().count()))
+                if segments.len() >= pattern.len()
+                    && &segments[..pattern.len()] == pattern.as_slice()
+                {
+                    Some(MatchMetric(pattern.len()))
                 } else {
                     None
                 }
             }
             PathPattern::Equal(pattern) => {
-                if path == pattern {
-                    Some(MatchMetric(pattern.iter().count()))
+                if segments == *pattern {
+                    Some(MatchMetric(pattern.len()))
                 } else {
                     None
                 }
@@ -82,15 +84,7 @@ impl PathPattern {
 
     pub fn tail_for(&self, path: &str) -> Vec<String> {
         match &self {
-            PathPattern::Prefix(pattern) => {
-                let prefix_str = pattern.to_string_lossy();
-                path.strip_prefix(prefix_str.as_ref())
-                    .unwrap_or("")
-                    .split('/')
-                    .filter(|s| !s.is_empty())
-                    .map(String::from)
-                    .collect()
-            }
+            PathPattern::Prefix(pattern) => parse_segments(path)[pattern.len()..].to_vec(),
             PathPattern::Equal(_) => Vec::new(),
         }
     }
