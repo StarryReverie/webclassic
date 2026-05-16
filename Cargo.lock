@@ -350,6 +350,7 @@ dependencies = [
 name = "webclassic"
 version = "0.1.0"
 dependencies = [
+ "webclassic-handler-cgi",
  "webclassic-handler-core",
  "webclassic-handler-static",
  "webclassic-http",
@@ -361,6 +362,11 @@ dependencies = [
 [[package]]
 name = "webclassic-handler-cgi"
 version = "0.0.0"
+dependencies = [
+ "webclassic-http",
+ "webclassic-service",
+ "webclassic-web",
+]
 
 [[package]]
 name = "webclassic-handler-core"
