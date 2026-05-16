@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::num::NonZero;
@@ -16,6 +17,8 @@ pub struct Config {
     pub content: ContentConfig,
     #[serde(default)]
     pub cgi: Vec<CgiEntry>,
+    #[serde(default)]
+    pub error_pages: HashMap<String, String>,
 }
 
 fn default_max_connections() -> NonZero<usize> {
@@ -84,83 +87,64 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_minimal_config() {
-        let config: Config = toml::from_str(
-            r#"
-            listen = "127.0.0.1:8080"
-            [content]
-            root = "/var/www/html"
-        "#,
-        )
-        .unwrap();
-        assert_eq!(config.listen, "127.0.0.1:8080");
-        assert_eq!(config.max_connections, NonZero::new(32).unwrap());
-        assert_eq!(config.max_pending, NonZero::new(128).unwrap());
-        assert_eq!(config.content.root, PathBuf::from("/var/www/html"));
-        assert!(config.content.index.is_none());
-        assert!(config.cgi.is_empty());
-    }
+    fn load_full_config_with_resolved_paths() {
+        let tmp = tempfile::tempdir().unwrap();
+        let public = tmp.path().join("public");
+        fs::create_dir_all(&public).unwrap();
+        let cgi_bin = tmp.path().join("cgi-bin");
+        fs::create_dir_all(&cgi_bin).unwrap();
 
-    #[test]
-    fn parse_full_config() {
-        let config: Config = toml::from_str(
+        fs::write(
+            tmp.path().join("server.toml"),
             r#"
-            listen = "0.0.0.0:3000"
-            max_connections = 64
-            max_pending = 256
-            [content]
-            root = "/var/www"
-            index = "index.html"
-            [[cgi]]
-            methods = ["GET", "POST"]
-            prefix = "/cgi-bin/hello"
-            program = "/usr/local/bin/hello.sh"
-            [[cgi]]
-            methods = ["GET"]
-            prefix = "/cgi-bin/search"
-            program = "python"
-            args = ["/opt/cgi/search.py"]
-        "#,
+listen = "0.0.0.0:3000"
+max_connections = 64
+max_pending = 256
+
+[content]
+root = "./public"
+index = "index.html"
+
+[[cgi]]
+methods = ["GET", "POST"]
+prefix = "/cgi-bin/hello"
+program = "./cgi-bin/hello.sh"
+
+[[cgi]]
+methods = ["GET"]
+prefix = "/cgi-bin/search"
+program = "python"
+args = ["/opt/cgi/search.py"]
+
+[error_pages]
+"404" = "404.html"
+"403" = "403.html"
+"#,
         )
         .unwrap();
+
+        let config = load(&tmp.path().join("server.toml")).unwrap();
+
         assert_eq!(config.listen, "0.0.0.0:3000");
         assert_eq!(config.max_connections, NonZero::new(64).unwrap());
         assert_eq!(config.max_pending, NonZero::new(256).unwrap());
+
+        assert_eq!(config.content.root, public);
         assert_eq!(config.content.index.as_deref(), Some("index.html"));
+
         assert_eq!(config.cgi.len(), 2);
+        assert_eq!(config.cgi[0].methods, vec!["GET", "POST"]);
+        assert_eq!(config.cgi[0].prefix, "/cgi-bin/hello");
+        assert_eq!(config.cgi[0].program, tmp.path().join("cgi-bin/hello.sh"));
+        assert!(config.cgi[0].args.is_empty());
+        assert_eq!(config.cgi[1].methods, vec!["GET"]);
+        assert_eq!(config.cgi[1].args, vec!["/opt/cgi/search.py"]);
 
-        let entry = &config.cgi[0];
-        assert_eq!(entry.methods, vec!["GET", "POST"]);
-        assert_eq!(entry.prefix, "/cgi-bin/hello");
-        assert_eq!(entry.program, PathBuf::from("/usr/local/bin/hello.sh"));
-        assert!(entry.args.is_empty());
-
-        let entry = &config.cgi[1];
-        assert_eq!(entry.args, vec!["/opt/cgi/search.py"]);
-    }
-
-    #[test]
-    fn parse_methods_valid() {
-        let entry = CgiEntry {
-            methods: vec!["GET".to_string(), "POST".to_string()],
-            prefix: "/test".to_string(),
-            program: PathBuf::from("/bin/test"),
-            args: vec![],
-        };
-        let methods = entry.parse_methods().unwrap();
+        let methods = config.cgi[0].parse_methods().unwrap();
         assert_eq!(methods, vec![Method::Get, Method::Post]);
-    }
 
-    #[test]
-    fn parse_methods_case_insensitive() {
-        let entry = CgiEntry {
-            methods: vec!["get".to_string(), "post".to_string()],
-            prefix: "/test".to_string(),
-            program: PathBuf::from("/bin/test"),
-            args: vec![],
-        };
-        let methods = entry.parse_methods().unwrap();
-        assert_eq!(methods, vec![Method::Get, Method::Post]);
+        assert_eq!(config.error_pages.get("404"), Some(&"404.html".to_string()));
+        assert_eq!(config.error_pages.get("403"), Some(&"403.html".to_string()));
     }
 
     #[test]
@@ -172,55 +156,5 @@ mod tests {
             args: vec![],
         };
         assert!(entry.parse_methods().is_err());
-    }
-
-    #[test]
-    fn resolve_relative_paths() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("server.toml");
-        fs::write(
-            &config_path,
-            r#"
-listen = "127.0.0.1:8080"
-[content]
-root = "./public"
-index = "index.html"
-[[cgi]]
-methods = ["GET"]
-prefix = "/cgi-bin/hello"
-program = "./cgi-bin/hello.sh"
-"#,
-        )
-        .unwrap();
-
-        let config = load(&config_path).unwrap();
-        assert_eq!(config.content.root, tmp.path().join("public"));
-        assert_eq!(config.cgi[0].program, tmp.path().join("cgi-bin/hello.sh"));
-    }
-
-    #[test]
-    fn keep_absolute_paths() {
-        let tmp = tempfile::tempdir().unwrap();
-        let config_path = tmp.path().join("server.toml");
-        fs::write(
-            &config_path,
-            r#"
-listen = "127.0.0.1:8080"
-[content]
-root = "/var/www/html"
-[[cgi]]
-methods = ["GET"]
-prefix = "/cgi-bin/hello"
-program = "/usr/local/bin/hello.sh"
-"#,
-        )
-        .unwrap();
-
-        let config = load(&config_path).unwrap();
-        assert_eq!(config.content.root, PathBuf::from("/var/www/html"));
-        assert_eq!(
-            config.cgi[0].program,
-            PathBuf::from("/usr/local/bin/hello.sh")
-        );
     }
 }

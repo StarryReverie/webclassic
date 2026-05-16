@@ -6,7 +6,7 @@ use webclassic::runtime::ServerOptions;
 use webclassic::web::WebService;
 
 use config::load;
-use router::build_dispatcher;
+use router::build_controller;
 
 mod config;
 mod router;
@@ -18,8 +18,8 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let config = load(Path::new(&config_path)).map_err(|e| format!("config error: {}", e))?;
 
-    let dispatcher = build_dispatcher(&config)?;
-    let service = WebService::new(dispatcher);
+    let controller = build_controller(&config)?;
+    let service = WebService::boxed(controller);
 
     let listener = TcpListener::bind(&config.listen)
         .map_err(|e| format!("bind {} failed: {}", config.listen, e))?;
