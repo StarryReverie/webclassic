@@ -1,23 +1,26 @@
+use std::error::Error;
 use std::net::TcpListener;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use webclassic::runtime::ServerOptions;
-use webclassic::web::handler::FunctionHandler;
-use webclassic::web::protocol::HttpResponse;
-use webclassic::web::protocol::util::{Method, StatusCode};
-use webclassic::web::{Dispatcher, Route, WebService};
+use webclassic::web::WebService;
 
+use webclassic_embedded_links::router;
 use webclassic_embedded_links::state::AppState;
+use webclassic_embedded_links::template;
 
-fn main() {
-    let _state = Arc::new(AppState::new());
-    let _env = webclassic_embedded_links::template::create_env();
+fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
+    let static_dir = PathBuf::from(concat!(env!("CARGO_MANIFEST_DIR"), "/static"));
 
-    let service = WebService::new(Dispatcher::new().with(
-        Route::by(Method::Get).equal("/"),
-        FunctionHandler::new(|_ctx, _interrupt| Some(HttpResponse::new(StatusCode::OK))),
-    ));
+    let state = Arc::new(AppState::new());
+    let env = template::create_env(&static_dir)?;
 
-    let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
+    let dispatcher = router::build_router(state, env, static_dir);
+    let service = WebService::new(dispatcher);
+
+    let listener = TcpListener::bind("127.0.0.1:3000")?;
     ServerOptions::new(service).serve(listener);
+
+    Ok(())
 }
