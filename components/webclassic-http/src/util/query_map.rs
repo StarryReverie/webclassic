@@ -40,6 +40,10 @@ impl QueryMap {
     pub fn len(&self) -> usize {
         self.len
     }
+
+    pub fn iter(&self) -> impl Iterator<Item = (&String, &[String])> {
+        self.inner.iter().map(|(k, v)| (k, v.as_slice()))
+    }
 }
 
 impl Default for QueryMap {
