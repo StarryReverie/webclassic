@@ -1,0 +1,15 @@
+[package]
+name = "webclassic"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+webclassic-runtime = { path = "../webclassic-runtime" }
+webclassic-service = { path = "../webclassic-service" }
+
+webclassic-http = { path = "../webclassic-http" }
+webclassic-web = { path = "../webclassic-web" }
+
+webclassic-handler-cgi = { path = "../webclassic-handler-cgi" }
+webclassic-handler-core = { path = "../webclassic-handler-core" }
+webclassic-handler-static = { path = "../webclassic-handler-static" }

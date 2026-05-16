@@ -12,7 +12,7 @@ wait-timeout = "0.2.1"
 
 
 [package]
-name = "webclassic"
+name = "webclassic-prototype"
 version = "0.1.0"
 edition = "2024"
 
