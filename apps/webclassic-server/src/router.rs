@@ -3,7 +3,8 @@ use std::sync::Arc;
 
 use webclassic::web::controller::Controller;
 use webclassic::web::filter::{ErrorPageFilter, HeadFilter, LogBackend, LogFilter};
-use webclassic::web::handler::{CgiHandler, StaticDirectoryHandler};
+use webclassic::web::handler::{CgiHandler, FunctionHandler, StaticDirectoryHandler};
+use webclassic::web::protocol::HttpResponse;
 use webclassic::web::protocol::util::{Method, StatusCode};
 use webclassic::web::{Dispatcher, FilterExt, Route};
 
@@ -14,7 +15,7 @@ pub fn build_controller(
     config: &Config,
     log_backend: Arc<MemoryLogBackend>,
 ) -> Result<Box<dyn Controller>, Box<dyn Error + Send + Sync>> {
-    let dispatcher = build_dispatcher(config)?;
+    let dispatcher = build_dispatcher(config, Arc::clone(&log_backend))?;
 
     let mut error_filter = ErrorPageFilter::new();
     for (code_str, path) in &config.error_pages {
@@ -35,7 +36,10 @@ pub fn build_controller(
     Ok(Box::new(controller))
 }
 
-fn build_dispatcher(config: &Config) -> Result<Dispatcher, Box<dyn Error + Send + Sync>> {
+fn build_dispatcher(
+    config: &Config,
+    log_backend: Arc<MemoryLogBackend>,
+) -> Result<Dispatcher, Box<dyn Error + Send + Sync>> {
     let mut dispatcher = Dispatcher::new();
 
     for entry in &config.cgi {
@@ -53,6 +57,11 @@ fn build_dispatcher(config: &Config) -> Result<Dispatcher, Box<dyn Error + Send 
         }
     }
 
+    dispatcher = dispatcher.with(
+        Route::by(Method::Get).equal("/log"),
+        build_log_handler(log_backend),
+    );
+
     let mut static_handler = StaticDirectoryHandler::new(config.content.root.clone());
     if let Some(ref index) = config.content.index {
         static_handler = static_handler.with_index_file(index);
@@ -60,4 +69,19 @@ fn build_dispatcher(config: &Config) -> Result<Dispatcher, Box<dyn Error + Send 
     dispatcher = dispatcher.with(Route::by(Method::Get).prefix("/"), static_handler);
 
     Ok(dispatcher)
+}
+
+fn build_log_handler(backend: Arc<MemoryLogBackend>) -> FunctionHandler {
+    FunctionHandler::new(move |_context, _interrupt| {
+        let lines = backend.snapshot();
+        let mut body = String::new();
+        for line in &lines {
+            body.push_str(line);
+            body.push('\n');
+        }
+        let response = HttpResponse::new(StatusCode::OK)
+            .with_header("Content-Type", "text/plain; charset=utf-8".to_string())
+            .with_body(body.into_bytes());
+        Some(response)
+    })
 }
