@@ -218,6 +218,9 @@ program = "/usr/local/bin/hello.sh"
 
         let config = load(&config_path).unwrap();
         assert_eq!(config.content.root, PathBuf::from("/var/www/html"));
-        assert_eq!(config.cgi[0].program, PathBuf::from("/usr/local/bin/hello.sh"));
+        assert_eq!(
+            config.cgi[0].program,
+            PathBuf::from("/usr/local/bin/hello.sh")
+        );
     }
 }
