@@ -48,6 +48,11 @@ pub mod web {
         pub use webclassic_filter_core::error_page::ErrorPageFilter;
         #[cfg(feature = "web-filter-core")]
         pub use webclassic_filter_core::head::HeadFilter;
+
+        #[cfg(feature = "web-filter-logging")]
+        pub use webclassic_filter_logging::LogFilter;
+        #[cfg(feature = "web-filter-logging")]
+        pub use webclassic_filter_logging::backend::{LogBackend, LogEntry};
     }
 
     pub use webclassic_web::controller;

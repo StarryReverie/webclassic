@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 default = ["full"]
-full = ["service", "runtime", "web", "web-handler-core", "web-handler-static", "web-handler-cgi", "web-filter-core"]
+full = ["service", "runtime", "web", "web-handler-core", "web-handler-static", "web-handler-cgi", "web-filter-core", "web-filter-logging"]
 
 service = ["dep:webclassic-service"]
 runtime = ["dep:webclassic-runtime", "service"]
@@ -14,6 +14,7 @@ web-handler-core = ["dep:webclassic-handler-core", "web"]
 web-handler-static = ["dep:webclassic-handler-static", "web"]
 web-handler-cgi = ["dep:webclassic-handler-cgi", "web"]
 web-filter-core = ["dep:webclassic-filter-core", "web"]
+web-filter-logging = ["dep:webclassic-filter-logging", "web"]
 
 [dependencies]
 webclassic-runtime = { path = "../webclassic-runtime", optional = true }
@@ -26,3 +27,4 @@ webclassic-handler-cgi = { path = "../webclassic-handler-cgi", optional = true }
 webclassic-handler-core = { path = "../webclassic-handler-core", optional = true }
 webclassic-handler-static = { path = "../webclassic-handler-static", optional = true }
 webclassic-filter-core = { path = "../webclassic-filter-core", optional = true }
+webclassic-filter-logging = { path = "../webclassic-filter-logging", optional = true }
