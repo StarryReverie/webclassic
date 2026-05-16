@@ -40,12 +40,13 @@ fn build_query_string(request: &HttpRequest) -> String {
     }
 }
 
-fn build_script_name(request: &HttpRequest, route_tail: &str) -> String {
+fn build_script_name(request: &HttpRequest, segments: &[String]) -> String {
     let path = request.uri().path();
-    if route_tail.is_empty() {
+    if segments.is_empty() {
         path.to_string()
     } else {
-        path.strip_suffix(route_tail).unwrap_or(path).to_string()
+        let tail = format!("/{}", segments.join("/"));
+        path.strip_suffix(&tail).unwrap_or(path).to_string()
     }
 }
 
@@ -56,8 +57,13 @@ impl Controller for CgiHandler {
         }
 
         let request = context.request();
-        let path_info = context.route_tail().to_string();
-        let script_name = build_script_name(request, &path_info);
+        let segments = context.route_tail();
+        let path_info = if segments.is_empty() {
+            String::new()
+        } else {
+            format!("/{}", segments.join("/"))
+        };
+        let script_name = build_script_name(request, segments);
         let query_string = build_query_string(request);
         let env = build_cgi_env(request, &script_name, &path_info, &query_string);
 
@@ -118,10 +124,13 @@ mod tests {
 
     use super::*;
 
-    fn make_context(path: &str, route_tail: &str) -> Context {
+    fn make_context(path: &str, route_tail: &[&str]) -> Context {
         let raw = format!("GET {} HTTP/1.0\r\nHost: localhost\r\n\r\n", path);
         let (request, _) = HttpRequest::deserialize(raw.as_bytes()).unwrap().unwrap();
-        Context::with_tail(request, route_tail.to_string())
+        Context::with_tail(
+            request,
+            route_tail.iter().map(|s| (*s).to_string()).collect(),
+        )
     }
 
     fn make_interrupt() -> Interrupt {
@@ -145,7 +154,7 @@ mod tests {
         );
 
         let handler = CgiHandler::new(script);
-        let ctx = make_context("/hello", "");
+        let ctx = make_context("/hello", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::OK);
@@ -162,7 +171,7 @@ mod tests {
         );
 
         let handler = CgiHandler::new(script);
-        let ctx = make_context("/notfound", "");
+        let ctx = make_context("/notfound", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::NOT_FOUND);
@@ -171,7 +180,7 @@ mod tests {
     #[test]
     fn script_not_found_returns_404() {
         let handler = CgiHandler::new(PathBuf::from("/nonexistent/script"));
-        let ctx = make_context("/test", "");
+        let ctx = make_context("/test", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::NOT_FOUND);
@@ -189,7 +198,7 @@ mod tests {
         let handler = CgiHandler::new(script);
         let raw = "GET /echo_qs?foo=bar HTTP/1.0\r\nHost: localhost\r\n\r\n";
         let (request, _) = HttpRequest::deserialize(raw.as_bytes()).unwrap().unwrap();
-        let ctx = Context::with_tail(request, String::new());
+        let ctx = Context::with_tail(request, vec![]);
 
         let response = handler.process(ctx, &make_interrupt()).unwrap();
         assert_eq!(*response.status(), StatusCode::OK);
@@ -209,7 +218,7 @@ mod tests {
         let handler = CgiHandler::new(script);
         let raw = "GET /article/2024/hi HTTP/1.0\r\nHost: localhost\r\n\r\n";
         let (request, _) = HttpRequest::deserialize(raw.as_bytes()).unwrap().unwrap();
-        let ctx = Context::with_tail(request, "/2024/hi".to_string());
+        let ctx = Context::with_tail(request, vec!["2024".to_string(), "hi".to_string()]);
 
         let response = handler.process(ctx, &make_interrupt()).unwrap();
         assert_eq!(*response.status(), StatusCode::OK);

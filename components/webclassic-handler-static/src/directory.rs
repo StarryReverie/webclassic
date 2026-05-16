@@ -66,9 +66,10 @@ fn serve_file(path: &Path) -> Option<HttpResponse> {
 
 impl Controller for StaticDirectoryHandler {
     fn process(&self, context: Context, _interrupt: &Interrupt) -> Option<HttpResponse> {
-        let relative = context.route_tail();
+        let segments = context.route_tail();
+        let relative: PathBuf = segments.iter().collect();
 
-        let resolved = self.root.join(relative);
+        let resolved = self.root.join(&relative);
 
         if !is_under_root(&resolved, &self.root) {
             return Some(HttpResponse::new(StatusCode::FORBIDDEN));
@@ -108,10 +109,13 @@ mod tests {
 
     use super::*;
 
-    fn make_context(path: &str, route_tail: &str) -> Context {
+    fn make_context(path: &str, route_tail: &[&str]) -> Context {
         let raw = format!("GET {} HTTP/1.0\r\n\r\n", path);
         let (request, _) = HttpRequest::deserialize(raw.as_bytes()).unwrap().unwrap();
-        Context::with_tail(request, route_tail.to_string())
+        Context::with_tail(
+            request,
+            route_tail.iter().map(|s| (*s).to_string()).collect(),
+        )
     }
 
     fn make_interrupt() -> Interrupt {
@@ -131,7 +135,7 @@ mod tests {
         setup_dir(tmp.path());
 
         let handler = StaticDirectoryHandler::new(tmp.path().to_path_buf());
-        let ctx = make_context("/static/css/style.css", "css/style.css");
+        let ctx = make_context("/static/css/style.css", &["css", "style.css"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::OK);
@@ -146,7 +150,7 @@ mod tests {
 
         let handler =
             StaticDirectoryHandler::new(tmp.path().to_path_buf()).with_index_file("index.html");
-        let ctx = make_context("/static/css", "css");
+        let ctx = make_context("/static/css", &["css"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::FOUND);
@@ -163,7 +167,7 @@ mod tests {
 
         let handler =
             StaticDirectoryHandler::new(tmp.path().to_path_buf()).with_index_file("index.html");
-        let ctx = make_context("/static/", "");
+        let ctx = make_context("/static/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::OK);
@@ -178,7 +182,7 @@ mod tests {
 
         let handler =
             StaticDirectoryHandler::new(tmp.path().to_path_buf()).with_index_file("index.html");
-        let ctx = make_context("/", "");
+        let ctx = make_context("/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::OK);
@@ -192,7 +196,7 @@ mod tests {
         setup_dir(tmp.path());
 
         let handler = StaticDirectoryHandler::new(tmp.path().to_path_buf());
-        let ctx = make_context("/static/", "");
+        let ctx = make_context("/static/", &[]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::NOT_FOUND);
@@ -204,7 +208,10 @@ mod tests {
         setup_dir(tmp.path());
 
         let handler = StaticDirectoryHandler::new(tmp.path().to_path_buf());
-        let ctx = make_context("/static/../../../etc/passwd", "../../../etc/passwd");
+        let ctx = make_context(
+            "/static/../../../etc/passwd",
+            &["..", "..", "..", "etc", "passwd"],
+        );
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::FORBIDDEN);
@@ -216,7 +223,7 @@ mod tests {
         setup_dir(tmp.path());
 
         let handler = StaticDirectoryHandler::new(tmp.path().to_path_buf());
-        let ctx = make_context("/static/nope.txt", "nope.txt");
+        let ctx = make_context("/static/nope.txt", &["nope.txt"]);
         let response = handler.process(ctx, &make_interrupt()).unwrap();
 
         assert_eq!(*response.status(), StatusCode::NOT_FOUND);

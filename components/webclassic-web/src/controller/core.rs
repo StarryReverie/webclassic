@@ -4,18 +4,18 @@ use webclassic_service::interrupt::Interrupt;
 
 pub struct Context {
     request: HttpRequest,
-    route_tail: String,
+    route_tail: Vec<String>,
 }
 
 impl Context {
     pub fn new(request: HttpRequest) -> Self {
         Self {
             request,
-            route_tail: String::new(),
+            route_tail: Vec::new(),
         }
     }
 
-    pub fn with_tail(request: HttpRequest, route_tail: String) -> Self {
+    pub fn with_tail(request: HttpRequest, route_tail: Vec<String>) -> Self {
         Self {
             request,
             route_tail,
@@ -26,7 +26,7 @@ impl Context {
         &self.request
     }
 
-    pub fn route_tail(&self) -> &str {
+    pub fn route_tail(&self) -> &[String] {
         &self.route_tail
     }
 

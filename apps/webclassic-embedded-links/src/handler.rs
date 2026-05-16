@@ -11,7 +11,11 @@ use crate::state::AppState;
 
 pub fn redirect_handler(state: Arc<AppState>) -> FunctionHandler {
     FunctionHandler::new(move |context: Context, _: &Interrupt| {
-        let code = context.route_tail();
+        let segments = context.route_tail();
+        if segments.len() != 1 {
+            return Some(HttpResponse::new(StatusCode::NOT_FOUND));
+        }
+        let code = &segments[0];
         match state.resolve(code) {
             Some(url) => {
                 let response = HttpResponse::new(StatusCode::FOUND)

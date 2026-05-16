@@ -80,16 +80,18 @@ impl PathPattern {
         }
     }
 
-    pub fn tail_for(&self, path: &str) -> String {
+    pub fn tail_for(&self, path: &str) -> Vec<String> {
         match &self {
             PathPattern::Prefix(pattern) => {
                 let prefix_str = pattern.to_string_lossy();
                 path.strip_prefix(prefix_str.as_ref())
                     .unwrap_or("")
-                    .trim_start_matches('/')
-                    .to_string()
+                    .split('/')
+                    .filter(|s| !s.is_empty())
+                    .map(String::from)
+                    .collect()
             }
-            PathPattern::Equal(_) => String::new(),
+            PathPattern::Equal(_) => Vec::new(),
         }
     }
 }
