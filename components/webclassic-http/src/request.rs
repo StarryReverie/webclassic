@@ -16,6 +16,15 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
+    pub fn new(method: Method, uri: Uri) -> Self {
+        Self {
+            method,
+            uri,
+            headers: HeaderMap::new(),
+            body: Vec::new(),
+        }
+    }
+
     pub fn method(&self) -> Method {
         self.method
     }
@@ -30,6 +39,21 @@ impl HttpRequest {
 
     pub fn body(&self) -> &[u8] {
         &self.body
+    }
+
+    pub fn with_method(mut self, method: Method) -> Self {
+        self.method = method;
+        self
+    }
+
+    pub fn with_header(mut self, name: &str, value: String) -> Self {
+        self.headers.insert(name, value);
+        self
+    }
+
+    pub fn with_body(mut self, body: Vec<u8>) -> Self {
+        self.body = body;
+        self
     }
 }
 
@@ -195,5 +219,41 @@ mod tests {
         assert_eq!(values.len(), 2);
         assert_eq!(values[0], "text/html");
         assert_eq!(values[1], "application/json");
+    }
+
+    #[test]
+    fn builder_basic() {
+        let req = HttpRequest::new(Method::Get, Uri::from_str("/index.html").unwrap());
+        assert_eq!(req.method(), Method::Get);
+        assert_eq!(req.uri().path(), "/index.html");
+        assert!(req.headers().is_empty());
+        assert!(req.body().is_empty());
+    }
+
+    #[test]
+    fn builder_with_header_and_body() {
+        let req = HttpRequest::new(Method::Post, Uri::from_str("/submit").unwrap())
+            .with_header("Host", "localhost".to_string())
+            .with_header("Content-Type", "application/json".to_string())
+            .with_body(br#"{"key":"value"}"#.to_vec());
+        assert_eq!(req.method(), Method::Post);
+        assert_eq!(req.uri().path(), "/submit");
+        assert_eq!(
+            req.headers().get("host"),
+            Some(["localhost".to_string()].as_slice())
+        );
+        assert_eq!(
+            req.headers().get("content-type"),
+            Some(["application/json".to_string()].as_slice())
+        );
+        assert_eq!(req.body(), br#"{"key":"value"}"#);
+    }
+
+    #[test]
+    fn builder_with_method() {
+        let req = HttpRequest::new(Method::Head, Uri::from_str("/page").unwrap())
+            .with_method(Method::Get);
+        assert_eq!(req.method(), Method::Get);
+        assert_eq!(req.uri().path(), "/page");
     }
 }
