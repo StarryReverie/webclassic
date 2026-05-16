@@ -6,9 +6,11 @@ use webclassic::runtime::ServerOptions;
 use webclassic::web::WebService;
 
 use config::load;
+use log::create_log_backend;
 use router::build_controller;
 
 mod config;
+mod log;
 mod router;
 
 fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -18,7 +20,9 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
 
     let config = load(Path::new(&config_path)).map_err(|e| format!("config error: {}", e))?;
 
-    let controller = build_controller(&config)?;
+    let log_backend = create_log_backend();
+
+    let controller = build_controller(&config, log_backend)?;
     let service = WebService::boxed(controller);
 
     let listener = TcpListener::bind(&config.listen)

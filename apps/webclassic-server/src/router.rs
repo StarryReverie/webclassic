@@ -1,15 +1,18 @@
 use std::error::Error;
+use std::sync::Arc;
 
 use webclassic::web::controller::Controller;
-use webclassic::web::filter::{ErrorPageFilter, HeadFilter};
+use webclassic::web::filter::{ErrorPageFilter, HeadFilter, LogBackend, LogFilter};
 use webclassic::web::handler::{CgiHandler, StaticDirectoryHandler};
 use webclassic::web::protocol::util::{Method, StatusCode};
 use webclassic::web::{Dispatcher, FilterExt, Route};
 
 use crate::config::Config;
+use crate::log::MemoryLogBackend;
 
 pub fn build_controller(
     config: &Config,
+    log_backend: Arc<MemoryLogBackend>,
 ) -> Result<Box<dyn Controller>, Box<dyn Error + Send + Sync>> {
     let dispatcher = build_dispatcher(config)?;
 
@@ -27,7 +30,8 @@ pub fn build_controller(
 
     let controller = dispatcher
         .filtered(HeadFilter::new())
-        .filtered(error_filter);
+        .filtered(error_filter)
+        .filtered(LogFilter::new(log_backend as Arc<dyn LogBackend>));
     Ok(Box::new(controller))
 }
 
