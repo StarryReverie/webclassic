@@ -11,10 +11,11 @@ use webclassic_embedded_links::state::AppState;
 
 fn main() {
     let _state = Arc::new(AppState::new());
+    let _env = webclassic_embedded_links::template::create_env();
 
     let service = WebService::new(Dispatcher::new().with(
         Route::by(Method::Get).equal("/"),
-        FunctionHandler::new(move |_ctx, _interrupt| Some(HttpResponse::new(StatusCode::OK))),
+        FunctionHandler::new(|_ctx, _interrupt| Some(HttpResponse::new(StatusCode::OK))),
     ));
 
     let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
