@@ -86,6 +86,7 @@ impl PathPattern {
                 let prefix_str = pattern.to_string_lossy();
                 path.strip_prefix(prefix_str.as_ref())
                     .unwrap_or("")
+                    .trim_start_matches('/')
                     .to_string()
             }
             PathPattern::Equal(_) => String::new(),
