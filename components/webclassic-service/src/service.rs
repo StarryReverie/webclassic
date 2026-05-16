@@ -18,6 +18,10 @@ pub trait Service {
         interrupt: &Interrupt,
     ) -> Result<Option<Self::Response>, Self::Error>;
 
+    fn on_invalid(&self, _error: &<Self::Request as Request>::Error) -> Option<Self::Response> {
+        None
+    }
+
     fn run<R, W>(
         &self,
         reader: R,
@@ -35,7 +39,14 @@ pub trait Service {
                 Ok(request) => request,
                 Err(ReadRequestError::Interrupted) => return InterruptedSnafu.fail(),
                 Err(ReadRequestError::End) => return Ok(()),
-                err => err.context(ReadSnafu)?,
+                Err(e) => {
+                    if let ReadRequestError::Invalid { source } = &e
+                        && let Some(response) = self.on_invalid(source)
+                    {
+                        let _ = writer.write_response(&response, interrupt);
+                    }
+                    return Err(e).context(ReadSnafu);
+                }
             };
 
             if interrupt.is_interrupted() {
