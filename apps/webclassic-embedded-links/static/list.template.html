@@ -10,7 +10,7 @@
     {% if links %}
     <table>
         <thead>
-            <tr><th>Code</th><th>URL</th></tr>
+            <tr><th>Short Code</th><th>Original URL</th></tr>
         </thead>
         <tbody>
         {% for link in links %}
@@ -22,8 +22,8 @@
         </tbody>
     </table>
     {% else %}
-    <p>No links yet.</p>
+    <p class="empty">No links yet.</p>
     {% endif %}
-    <p><a href="/">Back</a></p>
+    <p class="back"><a href="/">&larr; Back</a></p>
 </body>
 </html>
