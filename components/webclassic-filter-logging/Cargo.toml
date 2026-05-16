@@ -1,0 +1,10 @@
+[package]
+name = "webclassic-filter-logging"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+chrono = { workspace = true }
+webclassic-http = { path = "../webclassic-http" }
+webclassic-service = { path = "../webclassic-service" }
+webclassic-web = { path = "../webclassic-web" }
