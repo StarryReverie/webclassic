@@ -1,1 +1,2 @@
+pub mod error_page;
 pub mod head;
