@@ -407,13 +407,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "webclassic-prototype"
-version = "0.1.0"
-dependencies = [
- "webclassic",
-]
-
-[[package]]
 name = "webclassic-runtime"
 version = "0.0.0"
 dependencies = [

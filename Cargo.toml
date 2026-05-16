@@ -8,14 +8,5 @@ serde = { version = "1.0.228", features = ["derive"] }
 snafu = "0.9.0"
 tempfile = "3.27.0"
 toml = "1.1.2"
+minijinja = "2.0.0"
 wait-timeout = "0.2.1"
-
-webclassic = { path = "components/webclassic" }
-
-[package]
-name = "webclassic-prototype"
-version = "0.1.0"
-edition = "2024"
-
-[dependencies]
-webclassic = { workspace = true }
