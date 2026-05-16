@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::fs;
+use std::num::NonZero;
 use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
@@ -8,9 +9,21 @@ use webclassic::web::protocol::util::Method;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub listen: String,
+    #[serde(default = "default_max_connections")]
+    pub max_connections: NonZero<usize>,
+    #[serde(default = "default_max_pending")]
+    pub max_pending: NonZero<usize>,
     pub content: ContentConfig,
     #[serde(default)]
     pub cgi: Vec<CgiEntry>,
+}
+
+fn default_max_connections() -> NonZero<usize> {
+    NonZero::new(32).unwrap()
+}
+
+fn default_max_pending() -> NonZero<usize> {
+    NonZero::new(128).unwrap()
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,6 +94,8 @@ mod tests {
         )
         .unwrap();
         assert_eq!(config.listen, "127.0.0.1:8080");
+        assert_eq!(config.max_connections, NonZero::new(32).unwrap());
+        assert_eq!(config.max_pending, NonZero::new(128).unwrap());
         assert_eq!(config.content.root, PathBuf::from("/var/www/html"));
         assert!(config.content.index.is_none());
         assert!(config.cgi.is_empty());
@@ -91,6 +106,8 @@ mod tests {
         let config: Config = toml::from_str(
             r#"
             listen = "0.0.0.0:3000"
+            max_connections = 64
+            max_pending = 256
             [content]
             root = "/var/www"
             index = "index.html"
@@ -107,6 +124,8 @@ mod tests {
         )
         .unwrap();
         assert_eq!(config.listen, "0.0.0.0:3000");
+        assert_eq!(config.max_connections, NonZero::new(64).unwrap());
+        assert_eq!(config.max_pending, NonZero::new(256).unwrap());
         assert_eq!(config.content.index.as_deref(), Some("index.html"));
         assert_eq!(config.cgi.len(), 2);
 

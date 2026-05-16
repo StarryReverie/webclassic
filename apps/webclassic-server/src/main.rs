@@ -25,7 +25,10 @@ fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
         .map_err(|e| format!("bind {} failed: {}", config.listen, e))?;
 
     eprintln!("listening on {}", config.listen);
-    ServerOptions::new(service).serve(listener);
+    ServerOptions::new(service)
+        .max_connections(config.max_connections)
+        .max_pending(config.max_pending)
+        .serve(listener);
 
     Ok(())
 }
