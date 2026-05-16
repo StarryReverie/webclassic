@@ -1,7 +1,4 @@
-pub mod runtime {
-    pub use webclassic_runtime::ServerOptions;
-}
-
+#[cfg(feature = "service")]
 pub mod service {
     pub use webclassic_service::interrupt;
     pub use webclassic_service::request;
@@ -13,6 +10,12 @@ pub mod service {
     pub use webclassic_service::service::{RunServiceError, Service};
 }
 
+#[cfg(feature = "runtime")]
+pub mod runtime {
+    pub use webclassic_runtime::ServerOptions;
+}
+
+#[cfg(feature = "web")]
 pub mod web {
     pub mod protocol {
         pub use webclassic_http::request;
@@ -24,12 +27,20 @@ pub mod web {
     }
 
     pub mod handler {
-        pub use webclassic_handler_cgi::CgiHandler;
+        #[cfg(feature = "web-handler-core")]
         pub use webclassic_handler_core::constant::ConstantHandler;
+        #[cfg(feature = "web-handler-core")]
         pub use webclassic_handler_core::function::FunctionHandler;
+        #[cfg(feature = "web-handler-core")]
         pub use webclassic_handler_core::redirect::RedirectHandler;
+
+        #[cfg(feature = "web-handler-static")]
         pub use webclassic_handler_static::directory::StaticDirectoryHandler;
+        #[cfg(feature = "web-handler-static")]
         pub use webclassic_handler_static::file::StaticFileHandler;
+
+        #[cfg(feature = "web-handler-cgi")]
+        pub use webclassic_handler_cgi::CgiHandler;
     }
 
     pub use webclassic_web::controller;

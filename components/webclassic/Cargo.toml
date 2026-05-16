@@ -3,13 +3,24 @@ name = "webclassic"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["full"]
+full = ["service", "runtime", "web", "web-handler-core", "web-handler-static", "web-handler-cgi"]
+
+service = ["dep:webclassic-service"]
+runtime = ["dep:webclassic-runtime", "service"]
+web = ["dep:webclassic-web", "dep:webclassic-http", "service"]
+web-handler-core = ["dep:webclassic-handler-core", "web"]
+web-handler-static = ["dep:webclassic-handler-static", "web"]
+web-handler-cgi = ["dep:webclassic-handler-cgi", "web"]
+
 [dependencies]
-webclassic-runtime = { path = "../webclassic-runtime" }
-webclassic-service = { path = "../webclassic-service" }
+webclassic-runtime = { path = "../webclassic-runtime", optional = true }
+webclassic-service = { path = "../webclassic-service", optional = true }
 
-webclassic-http = { path = "../webclassic-http" }
-webclassic-web = { path = "../webclassic-web" }
+webclassic-http = { path = "../webclassic-http", optional = true }
+webclassic-web = { path = "../webclassic-web", optional = true }
 
-webclassic-handler-cgi = { path = "../webclassic-handler-cgi" }
-webclassic-handler-core = { path = "../webclassic-handler-core" }
-webclassic-handler-static = { path = "../webclassic-handler-static" }
+webclassic-handler-cgi = { path = "../webclassic-handler-cgi", optional = true }
+webclassic-handler-core = { path = "../webclassic-handler-core", optional = true }
+webclassic-handler-static = { path = "../webclassic-handler-static", optional = true }
