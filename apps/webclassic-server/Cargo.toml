@@ -1,0 +1,10 @@
+[package]
+name = "webclassic-server"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+serde = { workspace = true }
+toml = { workspace = true }
+
+webclassic = { path = "../../components/webclassic", features = ["full"] }

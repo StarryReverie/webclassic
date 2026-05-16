@@ -15,6 +15,7 @@ use crate::parse::parse_cgi_output;
 
 const POLL_INTERVAL: Duration = Duration::from_millis(50);
 
+#[derive(Debug, Clone)]
 pub struct CgiHandler {
     command: PathBuf,
     args: Vec<String>,
