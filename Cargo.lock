@@ -424,6 +424,7 @@ dependencies = [
 name = "webclassic"
 version = "0.1.0"
 dependencies = [
+ "webclassic-filter-core",
  "webclassic-handler-cgi",
  "webclassic-handler-core",
  "webclassic-handler-static",

@@ -43,6 +43,13 @@ pub mod web {
         pub use webclassic_handler_cgi::CgiHandler;
     }
 
+    pub mod filter {
+        #[cfg(feature = "web-filter-core")]
+        pub use webclassic_filter_core::error_page::ErrorPageFilter;
+        #[cfg(feature = "web-filter-core")]
+        pub use webclassic_filter_core::head::HeadFilter;
+    }
+
     pub use webclassic_web::controller;
     pub use webclassic_web::dispatcher;
 
