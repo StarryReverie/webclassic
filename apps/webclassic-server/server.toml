@@ -1,0 +1,15 @@
+listen = "127.0.0.1:8080"
+max_connections = 32
+max_pending = 128
+
+[content]
+root = "./www"
+index = "index.html"
+
+[[cgi]]
+methods = ["GET"]
+prefix = "/cgi-bin"
+program = "./www/cgi-bin/env"
+
+[error_pages]
+"404" = "404.html"
