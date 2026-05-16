@@ -1,7 +1,8 @@
 use std::convert::Infallible;
 
-use webclassic_http::request::HttpRequest;
+use webclassic_http::request::{HttpRequest, ParseHttpRequestError};
 use webclassic_http::response::HttpResponse;
+use webclassic_http::util::StatusCode;
 use webclassic_service::interrupt::Interrupt;
 use webclassic_service::service::Service;
 
@@ -36,5 +37,9 @@ impl Service for WebService {
     ) -> Result<Option<Self::Response>, Self::Error> {
         let context = Context::new(request);
         Ok(self.controller.process(context, interrupt))
+    }
+
+    fn on_invalid(&self, _error: &ParseHttpRequestError) -> Option<HttpResponse> {
+        Some(HttpResponse::new(StatusCode::BAD_REQUEST))
     }
 }
