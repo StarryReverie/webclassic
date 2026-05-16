@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+echo "Content-Type: text/html"
+echo ""
+echo "<!DOCTYPE html>"
+echo "<html><head><title>Server Time</title><link rel=\"stylesheet\" href=\"/style.css\"></head>"
+echo "<body>"
+echo "<h1 style=\"color: #1f2328\">Server Time</h1>"
+echo "<p>$(date '+%Y-%m-%d %H:%M:%S')</p>"
+echo "<p><a href=\"/\">Back to home</a></p>"
+echo "</body></html>"

@@ -39,7 +39,8 @@ pub struct ContentConfig {
 pub struct CgiEntry {
     pub methods: Vec<String>,
     pub prefix: String,
-    pub program: PathBuf,
+    pub script: PathBuf,
+    pub interpreter: Option<PathBuf>,
     #[serde(default)]
     pub args: Vec<String>,
 }
@@ -68,7 +69,10 @@ pub fn load(path: &Path) -> Result<Config, Box<dyn Error>> {
     let base = path.parent().unwrap_or(Path::new("."));
     config.content.root = resolve_path(base, &config.content.root);
     for entry in &mut config.cgi {
-        entry.program = resolve_path(base, &entry.program);
+        entry.script = resolve_path(base, &entry.script);
+        if let Some(ref mut interp) = entry.interpreter {
+            *interp = resolve_path(base, interp);
+        }
     }
 
     Ok(config)
@@ -108,13 +112,13 @@ index = "index.html"
 [[cgi]]
 methods = ["GET", "POST"]
 prefix = "/cgi-bin/hello"
-program = "./cgi-bin/hello.sh"
+script = "./cgi-bin/hello.sh"
 
 [[cgi]]
 methods = ["GET"]
 prefix = "/cgi-bin/search"
-program = "python"
-args = ["/opt/cgi/search.py"]
+interpreter = "python"
+script = "/opt/cgi/search.py"
 
 [error_pages]
 "404" = "404.html"
@@ -135,10 +139,13 @@ args = ["/opt/cgi/search.py"]
         assert_eq!(config.cgi.len(), 2);
         assert_eq!(config.cgi[0].methods, vec!["GET", "POST"]);
         assert_eq!(config.cgi[0].prefix, "/cgi-bin/hello");
-        assert_eq!(config.cgi[0].program, tmp.path().join("cgi-bin/hello.sh"));
+        assert_eq!(config.cgi[0].script, tmp.path().join("cgi-bin/hello.sh"));
+        assert!(config.cgi[0].interpreter.is_none());
         assert!(config.cgi[0].args.is_empty());
         assert_eq!(config.cgi[1].methods, vec!["GET"]);
-        assert_eq!(config.cgi[1].args, vec!["/opt/cgi/search.py"]);
+        assert_eq!(config.cgi[1].interpreter, Some(tmp.path().join("python")));
+        assert_eq!(config.cgi[1].script, PathBuf::from("/opt/cgi/search.py"));
+        assert!(config.cgi[1].args.is_empty());
 
         let methods = config.cgi[0].parse_methods().unwrap();
         assert_eq!(methods, vec![Method::Get, Method::Post]);
@@ -152,7 +159,8 @@ args = ["/opt/cgi/search.py"]
         let entry = CgiEntry {
             methods: vec!["PATCH".to_string()],
             prefix: "/test".to_string(),
-            program: PathBuf::from("/bin/test"),
+            script: PathBuf::from("/bin/test"),
+            interpreter: None,
             args: vec![],
         };
         assert!(entry.parse_methods().is_err());

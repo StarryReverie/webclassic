@@ -8,8 +8,14 @@ index = "index.html"
 
 [[cgi]]
 methods = ["GET"]
-prefix = "/cgi-bin"
-program = "./www/cgi-bin/env"
+prefix = "/cgi-bin/env"
+script = "./www/cgi-bin/env"
+
+[[cgi]]
+methods = ["GET"]
+prefix = "/cgi-bin/time"
+interpreter = "/bin/sh"
+script = "./www/cgi-bin/time"
 
 [error_pages]
 "404" = "404.html"

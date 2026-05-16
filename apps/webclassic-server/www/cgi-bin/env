@@ -1,4 +1,16 @@
 #!/usr/bin/env sh
-echo "Content-Type: text/plain"
+echo "Content-Type: text/html"
 echo ""
-env | grep -E "^(SERVER_|REQUEST_|GATEWAY_|PATH_|QUERY_|SCRIPT_|CONTENT_|REMOTE_)" | sort
+echo "<!DOCTYPE html>"
+echo "<html><head><title>CGI Environment</title><link rel=\"stylesheet\" href=\"/style.css\"></head>"
+echo "<body>"
+echo "<h1 style=\"color: #1f2328\">CGI Environment</h1>"
+echo "<table style=\"margin: 0.5em auto; text-align: left\">"
+env | grep -E "^(SERVER_|REQUEST_|GATEWAY_|PATH_|QUERY_|SCRIPT_|CONTENT_|REMOTE_)" | sort | while read -r line; do
+    key="${line%%=*}"
+    val="${line#*=}"
+    echo "<tr><td><code>$key</code></td><td><code>$val</code></td></tr>"
+done
+echo "</table>"
+echo "<p><a href=\"/\">Back to home</a></p>"
+echo "</body></html>"

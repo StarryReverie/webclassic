@@ -35,7 +35,14 @@ fn build_dispatcher(config: &Config) -> Result<Dispatcher, Box<dyn Error + Send 
     let mut dispatcher = Dispatcher::new();
 
     for entry in &config.cgi {
-        let handler = CgiHandler::new(entry.program.clone(), entry.args.clone());
+        let handler = match &entry.interpreter {
+            Some(interp) => {
+                let mut full_args = vec![entry.script.to_string_lossy().to_string()];
+                full_args.extend_from_slice(&entry.args);
+                CgiHandler::new(interp.clone(), full_args)
+            }
+            None => CgiHandler::new(entry.script.clone(), entry.args.clone()),
+        };
         let methods = entry.parse_methods()?;
         for method in methods {
             dispatcher = dispatcher.with(Route::by(method).prefix(&entry.prefix), handler.clone());
